@@ -1,5 +1,10 @@
 package nio;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+
 /**
  * @Author: tobi
  * @Date: 2020/7/2 16:09
@@ -20,7 +25,27 @@ package nio;
  *       因此单个线程就可以监听多个客户端Channel。
  **/
 public class NIOServer {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
+        nativeWrite();
+    }
 
+    //本地文件写数据，将“Hello NIO"写入到 file01.txt中
+    public static void nativeWrite() throws Exception {
+        String str = "Hello NIO";
+
+        //1.创建一个输出流
+        FileOutputStream fileOutputStream = new FileOutputStream("E:\\file01.txt");
+        //2.通过fileOutputStream获取对应的FileChannel
+        FileChannel fileChannel = fileOutputStream.getChannel(); // 这个fileChannel的类型实际是FileChannelImpl
+
+        //3.创建一个缓冲区byteBuffer
+        ByteBuffer byteBuffer = ByteBuffer.allocate(1024);
+        //4.将str放入byteBuffer，然后从byteBuffer写入到fileChannel
+        byteBuffer.put(str.getBytes());
+        byteBuffer.flip();
+        fileChannel.write(byteBuffer);
+
+        //5.关闭流
+        fileOutputStream.close();
     }
 }
