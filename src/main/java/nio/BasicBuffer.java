@@ -1,5 +1,6 @@
 package nio;
 
+import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
 /**
@@ -20,6 +21,13 @@ import java.nio.IntBuffer;
  **/
 public class BasicBuffer {
     public static void main(String[] args) {
+        readAndGet();
+        type();
+        readOnly();
+    }
+
+    //Buffer基本的写数据和取数据
+    public static void readAndGet() {
         //创建一个Buffer，大小为5，可以存放5个int
         IntBuffer intBuffer = IntBuffer.allocate(5);
 
@@ -43,10 +51,10 @@ public class BasicBuffer {
         intBuffer.flip();
 
         //如果Buffer里面还有数据
-//        while (intBuffer.hasRemaining()) {
-//            //get里面维护了一个索引，每get一次，索引就往后移动一次
-//            System.out.println(intBuffer.get());  //输出0，2，4，6，8
-//        }
+        while (intBuffer.hasRemaining()) {
+            //get里面维护了一个索引，每get一次，索引就往后移动一次
+            System.out.println(intBuffer.get());  //输出0，2，4，6，8
+        }
 
         System.out.println("---");
 
@@ -59,6 +67,41 @@ public class BasicBuffer {
         //intBuffer.put(1);  //clear后再写数据，会从第一个覆盖，然后position会自动加1
         while (intBuffer.hasRemaining()) {
             System.out.println(intBuffer.get());  //输出2，4
+        }
+        System.out.println("---");
+    }
+
+    //Buffer取数据要按对应的类型取
+    private static void type() {
+        ByteBuffer byteBuffer = ByteBuffer.allocate(64);
+
+        byteBuffer.putInt(1);
+        byteBuffer.putLong(2);
+        byteBuffer.putChar('零');
+        byteBuffer.putShort((short) 5);
+
+        byteBuffer.flip();
+        //不按对应的类型取会报错（顺序）
+        System.out.println(byteBuffer.getInt());
+        System.out.println(byteBuffer.getLong());
+        System.out.println(byteBuffer.getChar());
+        System.out.println(byteBuffer.getShort());
+        System.out.println("---");
+    }
+
+    //获取只读的Buffer
+    private static void readOnly() {
+        ByteBuffer byteBuffer = ByteBuffer.allocate(64);
+        for (int i = 0; i < byteBuffer.capacity(); i++) {
+            byteBuffer.put((byte) i);
+        }
+
+        byteBuffer.flip();
+
+        //得到只读的Buffer，往里面写数据会抛ReadOnlyBufferException异常
+        ByteBuffer readOnlyBuffer = byteBuffer.asReadOnlyBuffer();
+        while (readOnlyBuffer.hasRemaining()) {
+            System.out.println(readOnlyBuffer.get());
         }
     }
 }
