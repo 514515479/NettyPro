@@ -1,7 +1,11 @@
 package nio;
 
+import java.io.FileNotFoundException;
+import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
 
 /**
  * @Author: tobi
@@ -20,10 +24,11 @@ import java.nio.IntBuffer;
  *     clear：limit置为capacity，position置为0，mark置为-1。
  **/
 public class BasicBuffer {
-    public static void main(String[] args) {
-        readAndGet();
-        type();
-        readOnly();
+    public static void main(String[] args) throws Exception{
+        //readAndGet();
+        //type();
+        //readOnly();
+        mappedByteBuffer();
     }
 
     //Buffer基本的写数据和取数据
@@ -103,5 +108,23 @@ public class BasicBuffer {
         while (readOnlyBuffer.hasRemaining()) {
             System.out.println(readOnlyBuffer.get());
         }
+    }
+
+    //MappedByteBuffer 可以让文件直接在内存（堆外的内存）中进行修改，操作系统不需要拷贝一份，性能较高，而如何同步到文件由NIO完成
+    //这里做的是直接在内存修改文件file03.txt中的内容
+    private static void mappedByteBuffer() throws Exception {
+        RandomAccessFile randomAccessFile = new RandomAccessFile("E:\\file03.txt", "rw");
+        FileChannel fileChannel = randomAccessFile.getChannel();
+        /**
+         * 参数1：模式，这里的FileChannel.MapMode.READ_WRITE使用的是读写模式。
+         * 参数2：可以直接修改的起始位置。
+         * 参数3：映射到内存的大小（不是索引），单位是字节（这里最多可以映射file03.txt的5个字节到内存去修改，可以修改的范围就是0-5）
+         */
+        MappedByteBuffer mappedByteBuffer = fileChannel.map(FileChannel.MapMode.READ_WRITE, 0, 5);
+        mappedByteBuffer.put(0, (byte)'A');
+        mappedByteBuffer.put(3, (byte)'9');
+
+        randomAccessFile.close();
+        System.out.println("修改成功...");
     }
 }
