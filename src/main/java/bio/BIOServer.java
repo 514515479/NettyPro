@@ -11,7 +11,7 @@ import java.util.concurrent.Executors;
  * @Author: tobi
  * @Date: 2020/7/2 0:39
  *
- * BIO例子（jdk自带的IO）
+ * BIO（Blocking I/O 同步阻塞IO jdk自带）
  *
  * BIO存在的问题分析：
  *     1.每个请求都需要创建独立的线程，与对应的客户端进行数据read，业务处理，数据write。
