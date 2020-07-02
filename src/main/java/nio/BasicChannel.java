@@ -21,7 +21,8 @@ public class BasicChannel {
         //nativeWrite();
         //nativeRead();
         //nativeCopy01();
-        nativeCopy01();
+        //nativeCopy02();
+        nativeCopy03();
     }
 
     //本地文件写数据，将“Hello NIO"写入到 file01.txt中
@@ -64,7 +65,7 @@ public class BasicChannel {
         fileInputStream.close();
     }
 
-    //本地文件拷贝（一个Buffer）
+    //本地文件拷贝（同一个Buffer）
     public static void nativeCopy01() throws Exception {
         //1.创建文件的输入流、输出流
         File file = new File("E:\\file01.txt");
@@ -88,7 +89,7 @@ public class BasicChannel {
         fileOutputStream.close();
     }
 
-    //本地文件拷贝（一个Buffer）视频上的例子
+    //本地文件拷贝（同一个Buffer）视频上的例子
     public static void nativeCopy02() throws Exception {
         //1.创建文件的输入流、输出流
         File file = new File("E:\\file01.txt");
@@ -112,6 +113,23 @@ public class BasicChannel {
             byteBuffer.flip();
             fileOutChannel.write(byteBuffer);
         }
+
+        //5.关闭流
+        fileInputStream.close();
+        fileOutputStream.close();
+    }
+
+    //本地文件拷贝（不使用buffer，直接使用FileChannel的transferFrom方法）
+    public static void nativeCopy03() throws Exception {
+        //1.创建文件的输入流、输出流
+        File file = new File("E:\\file01.txt");
+        FileInputStream fileInputStream = new FileInputStream(file);
+        FileOutputStream fileOutputStream = new FileOutputStream("E:\\file03.txt");
+        //2.获取对应的FileChannel
+        FileChannel fileInChannel = fileInputStream.getChannel(); // 这个fileChannel的类型实际是FileChannelImpl
+        FileChannel fileOutChannel = fileOutputStream.getChannel();
+        //使用transFrom完成拷贝
+        fileOutChannel.transferFrom(fileInChannel, 0, fileInChannel.size());
 
         //5.关闭流
         fileInputStream.close();
