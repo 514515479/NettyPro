@@ -13,6 +13,10 @@ import java.nio.IntBuffer;
  * Buffer可以读也可以写，需要flip方法切换。
  *
  * 注意：get()和put()会让position自动+1
+ *
+ * flip()和clear()的区别
+ *     flip： limit置为position，position置为0，mark置为-1。
+ *     clear：limit置为capacity，position置为0，mark置为-1。
  **/
 public class BasicBuffer {
     public static void main(String[] args) {

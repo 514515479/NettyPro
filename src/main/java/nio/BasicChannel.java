@@ -18,8 +18,10 @@ import java.nio.channels.FileChannel;
  **/
 public class BasicChannel {
     public static void main(String[] args) throws Exception {
-        nativeWrite();
+        //nativeWrite();
         //nativeRead();
+        //nativeCopy01();
+        nativeCopy01();
     }
 
     //本地文件写数据，将“Hello NIO"写入到 file01.txt中
@@ -55,11 +57,64 @@ public class BasicChannel {
         //4.将fileChannel的数据写入byteBuffer
         fileChannel.read(byteBuffer);
 
-        //打印
-        //System.out.println(new String(byteBuffer.array()));
+        //打印  byteBuffer.array()就是return byte[] hb
+        System.out.println(new String(byteBuffer.array()));
 
         //5.关闭流
         fileInputStream.close();
+    }
 
+    //本地文件拷贝（一个Buffer）
+    public static void nativeCopy01() throws Exception {
+        //1.创建文件的输入流、输出流
+        File file = new File("E:\\file01.txt");
+        FileInputStream fileInputStream = new FileInputStream(file);
+        FileOutputStream fileOutputStream = new FileOutputStream("E:\\file02.txt");
+        //2.通过fileInputStream获取对应的FileChannel
+        FileChannel fileInChannel = fileInputStream.getChannel(); // 这个fileChannel的类型实际是FileChannelImpl
+
+        //3.创建一个缓冲区byteBuffer
+        ByteBuffer byteBuffer = ByteBuffer.allocate((int)file.length());
+        //4.将fileChannel的数据写入byteBuffer
+        fileInChannel.read(byteBuffer);
+
+        //从byteBuffer写入到fileChannel
+        FileChannel fileOutChannel = fileOutputStream.getChannel();
+        byteBuffer.flip();
+        fileOutChannel.write(byteBuffer);
+
+        //5.关闭流
+        fileInputStream.close();
+        fileOutputStream.close();
+    }
+
+    //本地文件拷贝（一个Buffer）视频上的例子
+    public static void nativeCopy02() throws Exception {
+        //1.创建文件的输入流、输出流
+        File file = new File("E:\\file01.txt");
+        FileInputStream fileInputStream = new FileInputStream(file);
+        FileOutputStream fileOutputStream = new FileOutputStream("E:\\file02.txt");
+        //2.获取对应的FileChannel
+        FileChannel fileInChannel = fileInputStream.getChannel(); // 这个fileChannel的类型实际是FileChannelImpl
+        FileChannel fileOutChannel = fileOutputStream.getChannel();
+
+        //3.创建一个缓冲区byteBuffer
+        ByteBuffer byteBuffer = ByteBuffer.allocate(512);
+        //不知道文件多大，循环读
+        while (true) {
+            //4.将fileChannel的数据写入byteBuffer
+            byteBuffer.clear(); //清空buffer，不加这个，到最后position == limit，无法满足read == -1推出循环
+            int read = fileInChannel.read(byteBuffer);
+            if (read == -1) {
+                break;
+            }
+            //从byteBuffer写入到fileChannel
+            byteBuffer.flip();
+            fileOutChannel.write(byteBuffer);
+        }
+
+        //5.关闭流
+        fileInputStream.close();
+        fileOutputStream.close();
     }
 }
