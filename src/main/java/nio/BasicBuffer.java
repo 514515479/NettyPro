@@ -110,7 +110,7 @@ public class BasicBuffer {
         }
     }
 
-    //MappedByteBuffer 可以让文件直接在内存（堆外的内存）中进行修改，操作系统不需要拷贝一份，性能较高，而如何同步到文件由NIO完成
+    //MappedByteBuffer 可以让文件直接在内存（堆外的内存）中进行修改，操作系统不需要拷贝一份，性能较高，而如何同步到文件由NIO完成。
     //这里做的是直接在内存修改文件file03.txt中的内容
     private static void mappedByteBuffer() throws Exception {
         RandomAccessFile randomAccessFile = new RandomAccessFile("E:\\file03.txt", "rw");
