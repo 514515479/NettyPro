@@ -18,6 +18,9 @@ import java.util.Scanner;
  * 1.连接服务器
  * 2.发送消息
  * 3.接受服务器端的消息
+ *
+ * 注意事项：
+ *     SocketChannel必须设置通道为非阻塞，才能向Selector注册
  **/
 public class GroupChatClient {
     //服务器ip
@@ -72,6 +75,7 @@ public class GroupChatClient {
                         System.out.println(msg.trim());
                     }
                     //删除当前selectionKey，防止重复操作
+                    keyIterator.remove();
                 }
             } else {
                 System.out.println("没有可用的通道...");
@@ -84,7 +88,7 @@ public class GroupChatClient {
     public static void main(String[] args) throws Exception{
         //启动我们客户端
         GroupChatClient chatClient = new GroupChatClient();
-        //启动一个线程, 每个3秒，读取从服务器发送数据
+        //启动一个线程，每隔3秒，接受服务器发送数据（别的client发的消息）
         new Thread(() -> {
             while (true) {
                 chatClient.readInfo();

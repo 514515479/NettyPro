@@ -2,8 +2,6 @@ package nio.chat;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;
 import java.util.Iterator;
@@ -16,6 +14,9 @@ import java.util.Iterator;
  *
  * 1.服务器启动，并监听端口6667
  * 2.服务器接收客户端的消息，并实现转发[实现上线和离线]
+ *
+ * 注意事项：
+ *     SocketChannel必须设置通道为非阻塞，才能向Selector注册
  **/
 public class GroupChatServer {
     private Selector selector;
