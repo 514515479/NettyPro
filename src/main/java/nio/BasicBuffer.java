@@ -137,6 +137,7 @@ public class BasicBuffer {
     //scattering：将数据写入到Buffer时，可以采用Buffer数组，依次写入
     //gathering：从Buffer读取数据时，可以采用Buffer数组，依次读
     public static void scatteringAndGathering() throws Exception{
+
         //使用ServerSocketChannel和SocketChannel网络
         ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();
         InetSocketAddress inetSocketAddress = new InetSocketAddress(7000);
@@ -150,6 +151,7 @@ public class BasicBuffer {
 
         //等待客户端连接（telnet）
         SocketChannel socketChannel = serverSocketChannel.accept();
+
         //循环读取
         int messageLength = 8; //假定从客户端读取8个字节
         while (true) {
@@ -165,7 +167,10 @@ public class BasicBuffer {
             }
 
             //将所有的Buffer进行flip
-            Arrays.asList(byteBuffers).forEach(buffer -> buffer.flip());
+            Arrays.asList(byteBuffers).forEach(buffer -> {
+                buffer.flip();
+            });
+
             //将数据读出，显示到客户端（这里是为了展示依次读）
             long byteWrite = 0;
             while (byteWrite < messageLength) {
@@ -173,7 +178,9 @@ public class BasicBuffer {
                 byteWrite += l;
             }
             //将所有Buffer进行clear
-            Arrays.asList(byteBuffers).forEach(buffer -> buffer.clear());
+            Arrays.asList(byteBuffers).forEach(buffer -> {
+                buffer.clear();
+            });
             System.out.println("byteRead:" + byteRead + "; byteWrite:" + byteWrite + "; messageLength:" + messageLength);
         }
     }
