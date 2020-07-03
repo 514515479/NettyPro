@@ -17,6 +17,12 @@ import java.util.Iterator;
  *
  * 注意事项：
  *     SocketChannel必须设置通道为非阻塞，才能向Selector注册
+ *
+ * SelectionKey表示Selector与网络通道SocketChannel的关系
+ *     1.int OP_ACCEPT：有新的网络连接可以accpet，值为16
+ *     2.int OP_CONNECT：代表连接已经建立，值为8
+ *     3.int OP_READ：代表读操作，值为1
+ *     4.int OP_WRITE：代表写操作，值为4
  **/
 public class GroupChatServer {
     private Selector selector;
@@ -62,16 +68,15 @@ public class GroupChatServer {
                             sc.register(selector, SelectionKey.OP_READ);
                             //连接成功了，提示“XXX上线了”
                             System.out.println(sc.getRemoteAddress() + "上线了...");
-
                         }
-                        //处理读事件，即通道是可读状态
+                        //处理读事件，即通道是可读状态（这里发现关闭client也会进入key.isReadable()）
                         if (key.isReadable()) {
                             readData(key);
                         }
                         //当前的key删除，防止重复处理
                         keyIterator.remove();
+                        System.out.println("删除key");
                     }
-
                 } else {
                     //System.out.println("服务器等待中...");
                 }
@@ -87,6 +92,7 @@ public class GroupChatServer {
     private void readData(SelectionKey key) throws Exception{
         SocketChannel socketChannel = null;
         try {
+            System.out.println("readData...");
             //取到关联的SocketChannel
             socketChannel = (SocketChannel) key.channel();
             ByteBuffer byteBuffer = ByteBuffer.allocate(1024);
@@ -98,7 +104,6 @@ public class GroupChatServer {
                 //群聊系统，需要向其它客户端（排除自己）转发消息
                 this.sendInfoToOtherClient(msg, socketChannel);
             }
-
         } catch (Exception e) {
             //读不到数据会抛出异常，可能是因为socketChannel已经关闭了（下线了）
             System.out.println(socketChannel.getRemoteAddress() + "离线了...");
