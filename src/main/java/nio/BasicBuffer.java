@@ -1,11 +1,15 @@
 package nio;
 
-import java.io.FileNotFoundException;
 import java.io.RandomAccessFile;
+import java.lang.reflect.Array;
+import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.SocketChannel;
+import java.util.Arrays;
 
 /**
  * @Author: tobi
@@ -28,7 +32,8 @@ public class BasicBuffer {
         //readAndGet();
         //type();
         //readOnly();
-        mappedByteBuffer();
+        //mappedByteBuffer();
+        scatteringAndGathering();
     }
 
     //Buffer基本的写数据和取数据
@@ -126,5 +131,50 @@ public class BasicBuffer {
 
         randomAccessFile.close();
         System.out.println("修改成功...");
+    }
+
+    //Buffer的分散scattering和聚集gathering
+    //scattering：将数据写入到Buffer时，可以采用Buffer数组，依次写入
+    //gathering：从Buffer读取数据时，可以采用Buffer数组，依次读
+    public static void scatteringAndGathering() throws Exception{
+        //使用ServerSocketChannel和SocketChannel网络
+        ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();
+        InetSocketAddress inetSocketAddress = new InetSocketAddress(7000);
+        //绑定端口到socket，并启动
+        serverSocketChannel.socket().bind(inetSocketAddress);
+
+        //创建Buffer数组
+        ByteBuffer[] byteBuffers = new ByteBuffer[2];
+        byteBuffers[0] = ByteBuffer.allocate(5);
+        byteBuffers[1] = ByteBuffer.allocate(3);
+
+        //等待客户端连接（telnet）
+        SocketChannel socketChannel = serverSocketChannel.accept();
+        //循环读取
+        int messageLength = 8; //假定从客户端读取8个字节
+        while (true) {
+            int byteRead = 0;
+            while (byteRead < messageLength) {
+                long l = socketChannel.read(byteBuffers);
+                byteRead += l; //累计读取的字节
+                System.out.println("byteRead = " + byteRead);
+                //使用流打印当前Buffer的position和limit
+                Arrays.asList(byteBuffers).stream()
+                        .map(buffer -> "position = " + buffer.position() + "; limit = " + buffer.limit())
+                        .forEach(System.out::println);
+            }
+
+            //将所有的Buffer进行flip
+            Arrays.asList(byteBuffers).forEach(buffer -> buffer.flip());
+            //将数据读出，显示到客户端（这里是为了展示依次读）
+            long byteWrite = 0;
+            while (byteWrite < messageLength) {
+                long l = socketChannel.write(byteBuffers);
+                byteWrite += l;
+            }
+            //将所有Buffer进行clear
+            Arrays.asList(byteBuffers).forEach(buffer -> buffer.clear());
+            System.out.println("byteRead:" + byteRead + "; byteWrite:" + byteWrite + "; messageLength:" + messageLength);
+        }
     }
 }
