@@ -42,6 +42,8 @@ import java.util.Set;
  *
  *
  *  NIO入门案例，实现服务端与客户端之间的数据简单通讯（非阻塞）
+ *
+ *  服务器端
  **/
 public class NIOServer {
     public static void main(String[] args) throws Exception{
@@ -82,7 +84,7 @@ public class NIOServer {
                 if (key.isReadable()) { //如果发生的是OP_READ
                     //通过key反向获取到socketChannel
                     SocketChannel socketChannel = (SocketChannel) key.channel();
-                    //获取到socketChannel关联的buffer，读取socketChannel中的数据并写入buffer
+                    //获取到socketChannel关联的buffer，从socketChannel读取数据写入buffer
                     ByteBuffer byteBuffer = (ByteBuffer) key.attachment();
                     socketChannel.read(byteBuffer);
                     System.out.println("From客户端的数据：" + new String(byteBuffer.array()));
