@@ -38,7 +38,7 @@ public class NettyServer {
                         @Override
                         protected void initChannel(SocketChannel ch) throws Exception {
                             //pipeline()：通过SocketChannel返回关联的pipeline
-                            //addLast（）：在pipeline最后增加一个handler
+                            //addLast()：在pipeline最后增加一个handler（这里是自定义的handler）
                             ch.pipeline().addLast(new NettyServerHandler());
                         }
                     }); //给 workerGroup 的 EventLoop 对应的管道设置处理器

@@ -8,13 +8,20 @@ import io.netty.util.CharsetUtil;
 
 /**
  * @Author: tobi
- * @Date: 2020/7/5 4:38
+ * @Date: 2020/7/5 16:27
  *
- * Netty的简单服务端的自定义Handler处理器
+ * Netty的简单客户端的自定义Handler处理器
  *
  * 自定义一个Handler，需要继承netty规定好的某个HandlerAdapter（规范）。
  **/
-public class NettyServerHandler extends ChannelInboundHandlerAdapter {
+public class NettyClientHandler extends ChannelInboundHandlerAdapter {
+    //当通道就绪就会触发该方法
+    @Override
+    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        System.out.println("ChannelHandlerContext ctx：" + ctx);
+        ctx.writeAndFlush(Unpooled.copiedBuffer("hello Server服务器", CharsetUtil.UTF_8));
+    }
+
     /**
      * 读取数据事件（当通道有读取事件时会触发，这里我们可以读取客户端发送的消息）
      * @param ctx 上下文对象，含有管道pipeline，通道channel，连接地址
@@ -26,17 +33,8 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
         System.out.println("ChannelHandlerContext ctx：" + ctx);
         //将msg转成一个ByteBuf（netty提供的（性能更高），不是NIO的ByteBuffer）
         ByteBuf byteBuf = (ByteBuf) msg;
-        System.out.println("客户端发送的消息是：" + byteBuf.toString(CharsetUtil.UTF_8));
-        System.out.println("客户端地址：" + ctx.channel().remoteAddress());
-    }
-
-    //数据读取完毕
-    @Override
-    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
-        //write方法 + flush方法
-        //将数据写到缓存，并刷新（不刷新就不会写到通道）
-        //一般讲，我们对这个发送的数据进行编码
-        ctx.writeAndFlush(Unpooled.copiedBuffer("hello client客户端", CharsetUtil.UTF_8));
+        System.out.println("服务器回复的消息是：" + byteBuf.toString(CharsetUtil.UTF_8));
+        System.out.println("服务器地址：" + ctx.channel().remoteAddress());
     }
 
     //处理异常，一般是需要关闭通道
