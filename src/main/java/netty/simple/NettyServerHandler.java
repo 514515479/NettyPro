@@ -2,8 +2,10 @@ package netty.simple;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.ChannelPipeline;
 import io.netty.util.CharsetUtil;
 
 /**
@@ -11,6 +13,8 @@ import io.netty.util.CharsetUtil;
  * @Date: 2020/7/5 4:38
  *
  * Netty的简单服务端的自定义Handler处理器
+ *
+ * ChannelHandlerContext（ctx）包含了 channel 和 pipeline，channel 和 pipeline 相互包含。
  *
  * 自定义一个Handler，需要继承netty规定好的某个HandlerAdapter（规范）。
  **/
@@ -24,6 +28,10 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         System.out.println("ChannelHandlerContext ctx：" + ctx);
+        System.out.println("看看Channel和pipeline的关系：相互包含");
+        Channel channel = ctx.channel();
+        ChannelPipeline pipeline = ctx.pipeline();  //本质是一个双向链表，出栈入栈问题
+
         //将msg转成一个ByteBuf（netty提供的（性能更高），不是NIO的ByteBuffer）
         ByteBuf byteBuf = (ByteBuf) msg;
         System.out.println("客户端发送的消息是：" + byteBuf.toString(CharsetUtil.UTF_8));
