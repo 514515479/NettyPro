@@ -8,6 +8,8 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelPipeline;
 import io.netty.util.CharsetUtil;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * @Author: tobi
  * @Date: 2020/7/5 4:38
@@ -27,7 +29,49 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
      */
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        System.out.println("ChannelHandlerContext ctx：" + ctx);
+
+        /**
+         * 问题描述：比如这里我们有一个非常耗时长的业务
+         * 解决方案：异步执行 -> 提交该 channel 对应的 NioEventLoop 的 taskQueue中
+         *
+         * Thread.sleep(10 * 1000);  //模拟耗时长操作
+         * ctx.writeAndFlush(Unpooled.copiedBuffer("From channelRead：耗时长操作！", CharsetUtil.UTF_8));
+         * System.out.println("go on...");
+         */
+
+        //解决方案1
+        //  用户程序自定义普通任务（会被提交到和 channel 关联的 NioEventLoop 的 taskQueue中）
+        //  可以加多个任务（NioEventLoop 会按照顺序先后执行这些任务， 注意任务队列中的任务 是先后执行， 不是同时执行）
+        ctx.channel().eventLoop().execute(() -> {
+            try {
+                Thread.sleep(10 * 1000);  //模拟耗时长操作
+                ctx.writeAndFlush(Unpooled.copiedBuffer("From channelRead：耗时长操作！", CharsetUtil.UTF_8));
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            System.out.println("go on...");
+        });
+
+        //解决方案2
+        //  用户自定义定时任务，该任务提交到 ScheduleTaskQueue中
+        ctx.channel().eventLoop().schedule(() -> {
+            try {
+                Thread.sleep(10 * 1000);  //模拟耗时长操作
+                ctx.writeAndFlush(Unpooled.copiedBuffer("From channelRead：耗时长操作！", CharsetUtil.UTF_8));
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            System.out.println("go on...");
+        }, 5, TimeUnit.SECONDS);
+
+        //解决方案3
+        //  非Reactor线程调用Channel的各种方法
+
+
+
+        //-----------------------------------------------------------------------------------------------------------
+
+        /*System.out.println("ChannelHandlerContext ctx：" + ctx);
         System.out.println("看看Channel和pipeline的关系：相互包含");
         Channel channel = ctx.channel();
         ChannelPipeline pipeline = ctx.pipeline();  //本质是一个双向链表，出栈入栈问题
@@ -35,7 +79,7 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
         //将msg转成一个ByteBuf（netty提供的（性能更高），不是NIO的ByteBuffer）
         ByteBuf byteBuf = (ByteBuf) msg;
         System.out.println("客户端发送的消息是：" + byteBuf.toString(CharsetUtil.UTF_8));
-        System.out.println("客户端地址：" + ctx.channel().remoteAddress());
+        System.out.println("客户端地址：" + ctx.channel().remoteAddress());*/
     }
 
     //数据读取完毕

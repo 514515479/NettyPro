@@ -1,10 +1,7 @@
 package netty.simple;
 
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
+import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
@@ -14,6 +11,8 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
  * @Date: 2020/7/4 21:20
  *
  * Netty的简单服务端
+ *
+ * Netty是主从Reactor模型
  **/
 public class NettyServer {
     public static void main(String[] args) {
@@ -38,6 +37,8 @@ public class NettyServer {
                         //给pipeline设置处理器
                         @Override
                         protected void initChannel(SocketChannel ch) throws Exception {
+                            //这里可以用一个集合管理 SocketChannel，在推送消息时，将业务加入到各个channel对应的NioEventLoop的taskQueue中
+                            //set.add(ch);
                             //pipeline()：通过SocketChannel返回关联的pipeline
                             //addLast()：在pipeline最后增加一个handler（这里是自定义的handler）
                             ch.pipeline().addLast(new NettyServerHandler());
@@ -45,7 +46,17 @@ public class NettyServer {
                     }); //给 workerGroup 的 EventLoop 对应的管道设置处理器
             System.out.println("========服务器 is Ready========");
             //启动服务器（绑定一个端口并且同步，生成一个ChannelFuture对象（立马返回））
-            ChannelFuture cf = bootstrap.bind(6668).sync();
+            ChannelFuture cf = bootstrap.bind(6668).sync(); // sync，不用监听也能拿到结果（等执行完毕返回给ChannelFuture，主线程才继续，同步的）
+
+            //给cf注册监听器，监控我们关心的事件（监听返回给ChannelFuture是异步的，主线程不用等待）
+            cf.addListener(future -> {
+                if (cf.isSuccess()) {
+                    System.out.println("监听端口6668成功");
+                } else {
+                    System.out.println("监听端口6668失败");
+                }
+            });
+
             //对关闭通道进行监听（当有关闭通道的事件的时候，才会去处理）
             cf.channel().closeFuture().sync();
         } catch (InterruptedException e) {
